@@ -1,27 +1,73 @@
 ---
-title: "ps2.qmd"
+title: "GOV 51: PSET 02"
 author: "Daniel Cabrera"
 format: pdf
 editor: visual
 ---
 
-## Quarto
+# GOV 51: PSET 02
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+## Daniel Cabrera
 
-## Running Code
+GitHub Repository Link: <https://github.com/daniel-e-cabrera/gov51-ps2.git>
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
-```
-
-You can add options to executable code like this
+### 1.1.1 
 
 ```{r}
-#| echo: false
-2 * 2
+library(tidyverse)
+gay <- read_csv("data/raw/gay.csv")
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+### Q1.1
+
+```{r}
+#checking out the raw data
+View(gay)
+nrow(gay)
+length(unique(gay$study))
+unique(gay$treatment)
+
+```
+
+In our gay data set, there are a total of 69592 observations. Additionally, there are 2 unique values for our variable study. Lastly, the treatment conditions for our treatment variable are: "No Contact", "Recycling Script by Gay Canvasser", "Same-Sex Marriage Script by Gay Canvasser", "Recycling Script by Straight Canvasser", and "Same-Sex Marriage Script by Straight Canvasser".
+
+### Q1.2
+
+```{r}
+#filtering the data
+gay_s1_w1 <- gay |>
+  filter(study == "1",
+         wave == "1")
+View(gay_s1_w1)
+
+#looking at filtered data mean
+gay_s1_w1 |>
+  group_by(treatment) |>
+  summarise(mean_ssm = mean(ssm))
+
+```
+
+The treatment group with the highest average support for gay individuals is the "Recycling Script by Gay Canvasser" treatment group. They have a mean same-sex marriage attitude score of 3.13 (scored from 1-5 with 1 being the least amount of support for gay individuals and 5 being the most support for gay individuals).
+
+### Q1.3
+
+```{r}
+gay_s1_w1 |>
+  group_by(treatment) |>
+  summarise(sd_ssm = sd(ssm))
+
+```
+
+The standard deviations of each treatment group are roughly similar. Each one is between 1.66 and 1.7. Overall, our similar standard deviations tell us that people's responses are about equally dispersed around their treatment group's mean. Additionally, this is important, specfically in a randomized experiment because our differences in spread can be interpreted as treatment effects. Specifically, it tells us that treatments aren't really making people very polarized. In other words, outcome variability is nearly identical (SDs 1.66–1.70 on a 1–5 scale), suggesting the treatments do not meaningfully affect dispersion and that differences in means are not confounded by differences in variance.
+
+### Q1.4
+
+```{r}
+#summary data frame
+summary_gay_s1_w1 <- gay_s1_w1 |>
+  group_by(treatment) |>
+  summarise(mean_ssm = mean(ssm))
+
+#bar plot
+
+```
