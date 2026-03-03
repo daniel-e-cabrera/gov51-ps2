@@ -11,7 +11,7 @@ editor: visual
 
 GitHub Repository Link: <https://github.com/daniel-e-cabrera/gov51-ps2.git>
 
-### 1.1.1 
+### 1.1.1
 
 ```{r}
 library(tidyverse)
@@ -29,7 +29,7 @@ unique(gay$treatment)
 
 ```
 
-In our gay data set, there are a total of 69592 observations. Additionally, there are 2 unique values for our variable study. Lastly, the treatment conditions for our treatment variable are: "No Contact", "Recycling Script by Gay Canvasser", "Same-Sex Marriage Script by Gay Canvasser", "Recycling Script by Straight Canvasser", and "Same-Sex Marriage Script by Straight Canvasser".
+In our gay data set (LaCour's experimental data on attitudes toward same-sex marriage), there are a total of 69592 observations. Additionally, there are 2 unique values for our variable study. Lastly, the treatment conditions for our treatment variable are: "No Contact", "Recycling Script by Gay Canvasser", "Same-Sex Marriage Script by Gay Canvasser", "Recycling Script by Straight Canvasser", and "Same-Sex Marriage Script by Straight Canvasser".
 
 ### Q1.2
 
@@ -38,7 +38,6 @@ In our gay data set, there are a total of 69592 observations. Additionally, ther
 gay_s1_w1 <- gay |>
   filter(study == "1",
          wave == "1")
-View(gay_s1_w1)
 
 #looking at filtered data mean
 gay_s1_w1 |>
@@ -58,7 +57,7 @@ gay_s1_w1 |>
 
 ```
 
-The standard deviations of each treatment group are roughly similar. Each one is between 1.66 and 1.7. Overall, our similar standard deviations tell us that people's responses are about equally dispersed around their treatment group's mean. Additionally, this is important, specfically in a randomized experiment because our differences in spread can be interpreted as treatment effects. Specifically, it tells us that treatments aren't really making people very polarized. In other words, outcome variability is nearly identical (SDs 1.66–1.70 on a 1–5 scale), suggesting the treatments do not meaningfully affect dispersion and that differences in means are not confounded by differences in variance.
+The standard deviations of each treatment group are roughly similar. Each one is between 1.66 and 1.7. Overall, our similar standard deviations tell us that people's responses are about equally dispersed around their treatment group's mean. Additionally, this is important, specifically in a randomized experiment because our differences in spread can be interpreted as treatment effects. Specifically, it tells us that treatments aren't really making people very polarized. In other words, outcome variability is nearly identical (SDs 1.66–1.70 on a 1–5 scale), suggesting the treatments do not meaningfully affect dispersion and that differences in means are not confounded by differences in variance.
 
 ### Q1.4
 
@@ -98,3 +97,207 @@ print(comparison_gay_s1_w1)
 ```
 
 Yes, these groups look similar at baseline. With a standardized difference in means of −0.01, which is very close to 0, we can conclude that the two treatment/control groups are essentially balanced on this baseline measure—there is virtually no meaningful difference in their average baseline scores. This suggests that any differences we observe later in ssm scores are unlikely to be driven by pre-treatment differences.
+
+### Q1.6
+
+```{r}
+#filtering the data
+gay_s1_w2 <- gay |>
+  filter(study == "1",
+         wave == "2")
+
+#calculating the mean ssm for two groups
+comparison_gay_s1_w2 <- gay_s1_w2 |>
+  filter(treatment %in% c("Same-Sex Marriage Script by Gay Canvasser", "No Contact")) |>
+  group_by(treatment) |>
+  summarise(mean_ssm = mean(ssm), sd_ssm = sd(ssm))
+print(comparison_gay_s1_w2)
+
+
+```
+
+```{r}
+#calculate difference in means
+3.139489 - 3.039615
+```
+
+The difference in means ("Same-Sex Marriage Script by Gay Canvasser" - "No Contact") is 0.099 points on a 1-5 scale. Since our groups were balanced at baseline, this suggests that the observed difference in means can be attributed to the treatment rather than pre-existing differences between groups. In other words, because treatment assignment was randomized and baseline characteristics were balanced, we can interpret this difference as a causal effect of exposure to the script. However, the magnitude of the effect is quite small, specifically, less than one-tenth of a scale point, indicating that while the treatment appears to shift attitudes, the impact is relatively small.
+
+### Q2.1
+
+```{r}
+#loading in new datasets
+gay_r <- read_csv("data/raw/gayreshaped.csv")
+ccap <- read_csv("data/raw/ccap2012.csv")
+view(gay_r)
+
+#Calculating total number of observations and column names
+nrow(gay_r)
+colnames(gay_r)
+nrow(ccap)
+colnames(ccap)
+```
+
+Within the gay_r data set (same data as LaCour's, but reshaped with feeling thermometer scores across survey), there are 11948 observations and the column names are: "study", "treatment", "therm1", "therm2", "therm3", and "therm4". Within the ccap data set (2012 Cooperative Campaign Analysis Project—a large national survey), there are 43998 observations and the column names are: "..1", "caseid", and "gaytherm".
+
+### Q2.2
+
+```{r}
+#gay_r
+gay_r_s1 <- gay_r |>
+  filter(study == "1")
+
+gay_r_s1_therm1_mean_sd_median <-  gay_r_s1 |>
+  summarise(mean_therm1 = mean(therm1), sd_therm1 = sd(therm1), median_therm1 = median(therm1))
+print(gay_r_s1_therm1_mean_sd_median)
+
+#ccap
+ccap_gaytherm_mean_sd_median <-  ccap |>
+  summarise(mean_gaytherm = mean(gaytherm, na.rm = TRUE), sd_gaytherm = sd(gaytherm, na.rm = TRUE), median_gaytherm = median(gaytherm, na.rm = TRUE))
+print(ccap_gaytherm_mean_sd_median)
+
+  
+
+```
+
+For therm1 (Rating of Gay Individuals on Thermometer Scores) in Study 1 of our gay_r data set, the mean of therm1 is 58.38, the median is 52, and the standard deviation is 28.5. For gaytherm (Rating of Gay Individuals on Thermometer Scores) in our ccap data set, the mean is 58.71, the median is 54, and the standard deviation is 29.37. Comparing these side-by-side, we can clearly see that our means, medians, and standard deviations are almost exact for both data sets. Considering that these are completely different surveys, one being nationally representative, and another representing only individuals in Southern California, it is very odd to have such similar values amongst both data sets.
+
+### Q2.3
+
+```{r}
+# 1) Preparing each dataset
+ prep_lacour<- gay_r_s1 |> 
+  mutate(source = "LaCour Study 1", therm = therm1) |> 
+  select(source, therm, everything())
+
+prep_ccap <- ccap |> 
+  mutate(source = "2012 CCAP", therm = gaytherm, na.rm = TRUE) |> 
+  select(source, therm, everything())
+
+# 2) Combine the two
+combined_datasets <- bind_rows(prep_lacour, prep_ccap)
+
+# 4) Plot: facet side-by-side, consistent bins and breaks for 0-100 thermometer
+combined_histograms <- ggplot(combined_datasets, aes(x = therm)) +
+  geom_histogram(binwidth = 7, boundary = 0, color = "white", fill = "deepskyblue") +
+  facet_wrap(~ source, nrow = 1, scales = "fixed") +
+  scale_x_continuous(breaks = seq(0, 100, by = 5), limits = c(0, 100)) +
+  labs(title = "Thermometer Scores by Source",
+       subtitle = "LaCour Study 1 vs 2012 CCAP",
+       x = "Rating of Gay Individuals (0–100 Thermometer)",
+       y = "Count")
+
+print(combined_histograms)
+
+# 5) Save plot (make 'output' folder if needed)
+ggsave("output/combined_histograms.png", plot = combined_histograms, width = 12, height = 5)
+```
+
+```{r}
+lacour_histogram <- ggplot(gay_r_s1, aes(x = therm1)) +
+  geom_histogram(binwidth = 7, fill = "deepskyblue", color = "white") +
+  scale_x_continuous(breaks = seq(0,100, by = 5)) +
+  labs(title = "LaCour's Study 1 Baseline Thermometer Scores Distribution",
+       x = "Rating of Gay Individuals on Thermometer Scores",
+       y = "Count")
+print(lacour_histogram)
+ggsave("output/lacour_histogram.png", width = 10, height = 6)
+```
+
+```{r}
+ccap_histogram <- ggplot(ccap, aes(x = gaytherm, na.rm = TRUE)) +
+  geom_histogram(binwidth = 7, fill = "brown3", color = "white") +
+  scale_x_continuous(breaks = seq(0,100, by = 5)) +
+  labs(title = "2012 Cooperative Campaign Analysis Project Gay Thermometer Scores Distribution",
+       x = "Rating of Gay Individuals on Thermometer Scores",
+       y = "Count")
+print(ccap_histogram)
+ggsave("output/ccap_histogram.png", width = 10, height = 6)
+```
+
+Comparing these two histograms side-by-side, it seems as though they come from the same population. The two histograms display very similar distributions (one simply has more observations than the other), with peaks and troughs occurring at the exact same points along the scale. Additionally, the bin-to-bin changes are proportionally the same among the two histograms.
+
+### Q2.4
+
+```{r}
+#for study 1
+gay_r_s1_cor <- gay_r |>
+  filter(study == "1", treatment == "No Contact") |>
+  summarise(correlation_s1 = cor(therm1, therm2, use = "complete.obs"),
+            therm2_1_sd = sd(therm2 - therm1))
+print(gay_r_s1_cor)
+
+#for study 2
+gay_r_s2_cor <- gay_r |>
+  filter(study == "2", treatment == "No Contact") |>
+  summarise(correlation_s2 = cor(therm1, therm2, use = "complete.obs"),
+            therm2_1_sd = sd(therm2 - therm1))
+print(gay_r_s2_cor)
+```
+
+For study 1, therm1 and therm2 have a re-test correlation of about 0.998 and for study 2, therm1 and therm 2 have a re-test correlation of 0.97. While both studies exhibit extremely high test–retest reliability, the 0.998 correlation observed in Study 1 is extremely high for thermometer-based attitude measures, which typically exhibit some degree of measurement error and natural fluctuation. In other words, in study 1, according to our data set, people answered almost the exact same in therm2 as they did in therm1. The 0.97 correlation in Study 2, although still very high, allows for modest variation and is therefore more consistent with realistic patterns of survey response behavior. In other words, Study 2 presents a more plausible pattern.
+
+### Q2.5
+
+```{r}
+#Prep control-only data for Study 1 and Study 2
+prep_s1_control <- gay_r |>
+  filter(study == "1", treatment == "No Contact") |>
+  mutate(source = "Study 1 (Control)") |>
+  select(source, therm1, therm2, everything())
+
+prep_s2_control <- gay_r |>
+  filter(study == "2", treatment == "No Contact") |>
+  mutate(source = "Study 2 (Control)") |>
+  select(source, therm1, therm2, everything())
+
+#Combine
+combined_control <- bind_rows(prep_s1_control, prep_s2_control)
+
+
+#Scatterplot 
+control_scatter_therm1_therm2 <- ggplot(combined_control, aes(x = therm1, y = therm2)) +
+  geom_point(alpha = 0.35) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  facet_wrap(~ source, nrow = 1) +
+  labs(title = "Thermometer Test–Retest: Control Group Only",
+       subtitle = "therm1 (baseline) vs therm2 (follow-up) in Study 1 and Study 2",
+       x = "therm1 (0–100)",
+       y = "therm2 (0–100)")
+
+print(control_scatter_therm1_therm2)
+
+# 4) Save
+ggsave("output/control_scatter_therm1_therm2.png", plot = control_scatter_therm1_therm2, width = 12, height = 5)
+```
+
+The key difference between Study 1 and Study 2 is the distribution and variability of the points. In Study 1 Control Group, the data falls almost perfectly on the diagonal, with heavy clustering at just a few values like 0, 50, and 100. There is very little spread around those points. Therfore, this pattern looks artificial and overly clean. Real longitudinal data would rarely show such little variability. In contrast, Study 2 Control Group shows much more spread around the diagonal. While there is a clear positive relationship between therm1 and therm2 (as we would expect in test–retest data), individuals move up and down across time, and responses are more continuously distributed. In other words, there is more natural variability. As a result, this natural variability makes Study 2 look much more like real longitudinal data, where attitudes are generally stable but still shift somewhat over time.
+
+### Q2.6
+
+### Q3.1
+
+```{r}
+#gay_r
+gay_r_s2 <- gay_r |>
+  filter(study == "2")
+
+#number of observations
+nrow(gay_r_s2)
+
+#mean and sd of therm1
+gay_r_s2_control_therm1_mean_sd <-  gay_r_s2 |>
+  filter(treatment == "No Contact") |>
+  summarise(s2_mean_therm1_c = mean(therm1), s2_sd_therm1_c = sd(therm1))
+print(gay_r_s2_control_therm1_mean_sd)
+
+gay_r_s2_control_therm1_mean_sd <-  gay_r_s2 |>
+  filter(treatment == "Same-Sex Marriage Script by Gay Canvasser") |>
+  summarise(s2_mean_therm1_t = mean(therm1), s2_sd_therm1_t = sd(therm1))
+print(gay_r_s2_control_therm1_mean_sd)
+
+```
+
+There are 2441 observations in Study 2. The mean of therm1 (Rating of Gay Individuals on Thermometer Scores) for the treatment group is 59.35. The standard deviation for this group is 28.42. The mean of therm1 for the control group is 57.89 and the standard deviation is 28.70.
+
+### Q3.2
