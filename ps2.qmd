@@ -38,12 +38,13 @@ In our gay data set (LaCour's experimental data on attitudes toward same-sex mar
 gay_s1_w1 <- gay |>
   filter(study == "1",
          wave == "1")
+```
 
-#looking at filtered data mean
+```{r}
+#mean
 gay_s1_w1 |>
   group_by(treatment) |>
-  summarise(mean_ssm = mean(ssm))
-
+    summarise(mean_ssm = mean(ssm))
 ```
 
 The treatment group with the highest average support for gay individuals is the "Recycling Script by Gay Canvasser" treatment group. They have a mean same-sex marriage attitude score of 3.13 (scored from 1-5 with 1 being the least amount of support for gay individuals and 5 being the most support for gay individuals).
@@ -51,9 +52,11 @@ The treatment group with the highest average support for gay individuals is the 
 ### Q1.3
 
 ```{r}
+#sd
 gay_s1_w1 |>
   group_by(treatment) |>
   summarise(sd_ssm = sd(ssm))
+
 
 ```
 
@@ -278,7 +281,7 @@ The key difference between Study 1 and Study 2 is the distribution and variabili
 ### Q3.1
 
 ```{r}
-#gay_r
+#gay_r_s2
 gay_r_s2 <- gay_r |>
   filter(study == "2")
 
@@ -291,13 +294,142 @@ gay_r_s2_control_therm1_mean_sd <-  gay_r_s2 |>
   summarise(s2_mean_therm1_c = mean(therm1), s2_sd_therm1_c = sd(therm1))
 print(gay_r_s2_control_therm1_mean_sd)
 
-gay_r_s2_control_therm1_mean_sd <-  gay_r_s2 |>
+gay_r_s2_ssm_therm1_mean_sd <-  gay_r_s2 |>
   filter(treatment == "Same-Sex Marriage Script by Gay Canvasser") |>
   summarise(s2_mean_therm1_t = mean(therm1), s2_sd_therm1_t = sd(therm1))
-print(gay_r_s2_control_therm1_mean_sd)
+print(gay_r_s2_ssm_therm1_mean_sd)
 
 ```
 
 There are 2441 observations in Study 2. The mean of therm1 (Rating of Gay Individuals on Thermometer Scores) for the treatment group is 59.35. The standard deviation for this group is 28.42. The mean of therm1 for the control group is 57.89 and the standard deviation is 28.70.
 
 ### Q3.2
+
+```{r}
+# 1) Preparing each dataset
+ prep_study1<- gay_r_s1 |> 
+  mutate(source = "Study 1", therm = therm1) |> 
+  select(source, therm, everything())
+
+prep_study2 <- gay_r_s2 |> 
+  mutate(source = "Study 2", therm = therm1) |> 
+  select(source, therm, everything())
+
+# 2) Combine the two
+combined_study1_2_datasets <- bind_rows(prep_study1,prep_study2)
+
+# 4) Plot: facet side-by-side, consistent bins and breaks for 0-100 thermometer
+combined__study1_2_histograms <- ggplot(combined_study1_2_datasets, aes(x = therm)) +
+  geom_histogram(binwidth = 7, boundary = 0, color = "white", fill = "darkcyan") +
+  facet_wrap(~ source, nrow = 1, scales = "fixed") +
+  scale_x_continuous(breaks = seq(0, 100, by = 5), limits = c(0, 100)) +
+  labs(title = "Baseline Thermometer Scores for Study 1 and Study 2",
+       x = "Rating of Gay Individuals (0–100 Thermometer)",
+       y = "Count")
+
+print(combined__study1_2_histograms)
+
+# 5) Save plot (make 'output' folder if needed)
+ggsave("output/ccombined__study1_2_histograms.png", plot = combined__study1_2_histograms, width = 12, height = 5)
+```
+
+Visually, Study 1 shows an unusually large concentration of responses at the midpoint of the scale (around 50), creating a very noticeable spike that is not present to the same degree in Study 2. In contrast, Study 2’s distribution appears more smoothly distributed across the thermometer scale (still with a noticeable spike at 50). This suggests that Study 2 shows a more typical pattern of survey responses.
+
+### Q3.3
+
+```{r}
+#gay_r_s2_ssm_nc
+gay_r_s2_ssm_nc <- gay_r |>
+  filter(study == "2",treatment %in% c("No Contact", "Same-Sex Marriage Script by Gay Canvasser"))
+
+
+#mean and sd of therm1
+gay_r_s2_ssm_nc_control_therm1_mean_sd <-  gay_r_s2_ssm_nc |>
+  filter(treatment == "No Contact") |>
+  summarise(s2_mean_therm1_c = mean(therm1), s2_sd_therm1_c = sd(therm1))
+print(gay_r_s2_control_therm1_mean_sd)
+
+gay_r_s2_ssm_nc_treatment_therm1_mean_sd <-  gay_r_s2_ssm_nc |>
+  filter(treatment == "Same-Sex Marriage Script by Gay Canvasser") |>
+  summarise(s2_mean_therm1_t = mean(therm1), s2_sd_therm1_t = sd(therm1))
+print(gay_r_s2_ssm_nc_treatment_therm1_mean_sd)
+
+```
+
+```{r}
+(59.35057 - 57.88612	) / sqrt((28.41578	^2 + 28.69655	^2)/2)
+```
+
+Yes, these groups look balanced. More specfically, with a standardized difference in means of 0.05, we can conclude that there is virtually no meaningful difference in their average baseline scores of the treatment and the control.
+
+### Q3.4
+
+```{r}
+therm2means <- gay_r_s2_ssm_nc |>
+  group_by(treatment) |>
+  summarise(mean_therm2 = mean(therm2, na.rm = TRUE))
+print(therm2means)
+
+```
+
+```{r}
+61.20311 - 57.63523
+```
+
+The mean of therm2 (Rating of Gay Individuals (0–100 Thermometer)) for the treatment group (Same-Sex Marriage Script by Gay Canvasser) is 61.20 and for the No Contact group the mean is 57.63. The difference in post-period means between the treatment and the control is 3.57.
+
+### Q3.5
+
+```{r}
+gay_r_s2_ssm_nc |>
+  filter(treatment == "No Contact") |>
+  summarise(var_therm2_nc = var(therm2, na.rm = TRUE))
+gay_r_s2_ssm_nc_c <- gay_r_s2_ssm_nc |>
+  filter(treatment == "No Contact")
+  nrow(gay_r_s2_ssm_nc_c)
+
+gay_r_s2_ssm_nc |>
+  filter(treatment == "Same-Sex Marriage Script by Gay Canvasser") |>
+  summarise(var_therm2_t = var(therm2, na.rm = TRUE))
+gay_r_s2_ssm_nc_nrow_t <- gay_r_s2_ssm_nc |>
+  filter(treatment == "Same-Sex Marriage Script by Gay Canvasser") 
+nrow(gay_r_s2_ssm_nc_nrow_t)
+```
+
+```{r}
+sqrt((826.7261/1203) + (817.1992/1238))
+```
+
+The standard error of the difference in post-period means for Q3.4 is 1.16.
+
+```{r}
+(61.20311 - 57.63523) + 1.96 * 1.16074
+(61.20311 - 57.63523) - 1.96 * 1.16074
+
+```
+
+The 95% confidence interval for the difference in means of the treatment group and the control group in study 2 is lower: 1.29 and upper: 5.84 . Since 0 is not between 1.29 and 5.84 (which are both positive), we can then say that the treatment group has a statistically significantly higher mean outcome than the control group at the 5% level. In other words, we can reject the null hypothesis.
+
+### Q3.6
+
+```{r}
+#for control group
+gay_r_s2_ssm_nc |>
+  filter(treatment == "No Contact") |>
+  summarise(correlation_1_2 = cor(therm1, therm2, use = "complete.obs"))
+gay_r_s2_ssm_nc |>
+  filter(treatment == "No Contact") |>
+  summarise(correlation_1_3 = cor(therm1, therm3, use = "complete.obs"))
+gay_r_s2_ssm_nc |>
+  filter(treatment == "No Contact") |>
+  summarise(correlation_1_4 = cor(therm1, therm4, use = "complete.obs"))
+
+```
+
+No.
+
+### Q3.7
+
+Discussion of Study 1 versus Study 2
+
+### Q4.1
